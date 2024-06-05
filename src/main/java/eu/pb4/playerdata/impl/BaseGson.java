@@ -2,6 +2,7 @@ package eu.pb4.playerdata.impl;
 
 
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
@@ -22,6 +23,7 @@ import net.minecraft.predicate.entity.EntityPredicate;
 import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.recipe.RecipeType;
 import net.minecraft.registry.*;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.structure.rule.RuleTestType;
@@ -36,6 +38,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.village.VillagerProfession;
 import net.minecraft.village.VillagerType;
+import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.event.GameEvent;
 import net.minecraft.world.event.PositionSourceType;
@@ -55,7 +58,6 @@ public class BaseGson {
 
                 .registerTypeHierarchyAdapter(Item.class, new RegistrySerializer<>(Registries.ITEM))
                 .registerTypeHierarchyAdapter(Block.class, new RegistrySerializer<>(Registries.BLOCK))
-                .registerTypeHierarchyAdapter(Enchantment.class, new RegistrySerializer<>(Registries.ENCHANTMENT))
                 .registerTypeHierarchyAdapter(SoundEvent.class, new RegistrySerializer<>(Registries.SOUND_EVENT))
                 .registerTypeHierarchyAdapter(StatusEffect.class, new RegistrySerializer<>(Registries.STATUS_EFFECT))
                 .registerTypeHierarchyAdapter(EntityType.class, new RegistrySerializer<>(Registries.ENTITY_TYPE))
@@ -66,7 +68,6 @@ public class BaseGson {
                 .registerTypeHierarchyAdapter(VillagerProfession.class, new RegistrySerializer<>(Registries.VILLAGER_PROFESSION))
                 .registerTypeHierarchyAdapter(Potion.class, new RegistrySerializer<>(Registries.POTION))
                 .registerTypeHierarchyAdapter(ParticleType.class, new RegistrySerializer<>(Registries.PARTICLE_TYPE))
-                .registerTypeHierarchyAdapter(PaintingVariant.class, new RegistrySerializer<>(Registries.PAINTING_VARIANT))
                 .registerTypeHierarchyAdapter(ChunkStatus.class, new RegistrySerializer<>(Registries.CHUNK_STATUS))
                 .registerTypeHierarchyAdapter(ScreenHandlerType.class, new RegistrySerializer<>(Registries.SCREEN_HANDLER))
                 .registerTypeHierarchyAdapter(RecipeType.class, new RegistrySerializer<>(Registries.RECIPE_TYPE))
@@ -88,7 +89,12 @@ public class BaseGson {
                 .registerTypeHierarchyAdapter(AxisAngle4f.class, new CodecSerializer<>(Codecs.AXIS_ANGLE4F))
                 .registerTypeHierarchyAdapter(Matrix4f.class, new CodecSerializer<>(Codecs.MATRIX4F))
                 .registerTypeHierarchyAdapter(BitSet.class, new CodecSerializer<>(Codecs.BIT_SET))
-                .registerTypeHierarchyAdapter(GameProfile.class, new CodecSerializer<>(Codecs.GAME_PROFILE_WITH_PROPERTIES));
+                .registerTypeHierarchyAdapter(GameProfile.class, new CodecSerializer<>(Codecs.GAME_PROFILE_WITH_PROPERTIES))
+
+                .registerTypeAdapter(new TypeToken<RegistryEntry<Enchantment>>() {}.getType(), new CodecSerializer<>(Enchantment.ENTRY_CODEC))
+                .registerTypeAdapter(new TypeToken<RegistryEntry<Biome>>() {}.getType(), new CodecSerializer<>(Biome.REGISTRY_CODEC))
+                .registerTypeAdapter(new TypeToken<RegistryEntry<PaintingVariant>>() {}.getType(), new CodecSerializer<>(PaintingVariant.ENTRY_CODEC))
+                ;
     }
 
     public static void withRegistries(RegistryWrapper.WrapperLookup lookup) {

@@ -13,5 +13,5 @@ public class TestClass {
     public ItemStack itemStack = ItemStack.EMPTY;
     public Item item = Items.AIR;
     public Text text = Text.empty();
-    public Identifier id = new Identifier("default");
+    public Identifier id = Identifier.of("default");
 }

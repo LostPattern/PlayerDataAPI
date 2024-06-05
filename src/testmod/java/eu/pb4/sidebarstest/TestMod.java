@@ -29,7 +29,7 @@ public class TestMod implements ModInitializer {
             testObj.itemStack = player.getMainHandStack();
             testObj.item = player.getMainHandStack().getItem();
             testObj.text = player.getDisplayName();
-            testObj.id = new Identifier("test:hello");
+            testObj.id = Identifier.of("test:hello");
             PlayerDataApi.setCustomDataFor(player, DATA_STORAGE, testObj);
 
 
@@ -59,7 +59,7 @@ public class TestMod implements ModInitializer {
     private static int test3(CommandContext<ServerCommandSource> objectCommandContext) {
         try {
             ServerPlayerEntity player = objectCommandContext.getSource().getPlayer();
-            PlayerDataApi.setGlobalDataFor(player, new Identifier("test"), NbtString.of("Hello Global World! " + Math.random() * 100));
+            PlayerDataApi.setGlobalDataFor(player, Identifier.of("test"), NbtString.of("Hello Global World! " + Math.random() * 100));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -69,7 +69,7 @@ public class TestMod implements ModInitializer {
     private static int test4(CommandContext<ServerCommandSource> objectCommandContext) {
         try {
             ServerPlayerEntity player = objectCommandContext.getSource().getPlayer();
-            NbtElement element = PlayerDataApi.getGlobalDataFor(player, new Identifier("test"));
+            NbtElement element = PlayerDataApi.getGlobalDataFor(player, Identifier.of("test"));
             player.sendMessage(Text.literal(element.toString()), false);
         } catch (Exception e) {
             e.printStackTrace();
