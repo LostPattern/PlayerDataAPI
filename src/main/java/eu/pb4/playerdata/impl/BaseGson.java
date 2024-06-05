@@ -28,6 +28,7 @@ import net.minecraft.structure.rule.RuleTestType;
 import net.minecraft.structure.rule.blockentity.RuleBlockEntityModifier;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.dynamic.Codecs;
 import net.minecraft.util.math.AffineTransformation;
@@ -45,7 +46,8 @@ import java.util.BitSet;
 
 public class BaseGson {
     public static final Gson GSON = createBuilder().setLenient().create();
-    private static final RegistryWrapper.WrapperLookup WRAPPER_LOOKUP = BuiltinRegistries.createWrapperLookup();
+    private static final ThreadLocal<RegistryWrapper.WrapperLookup> LOOKUP = new ThreadLocal<>();
+    private static final RegistryWrapper.WrapperLookup FALLBACK_LOOKUP = DynamicRegistryManager.of(Registries.REGISTRIES);
 
     public static GsonBuilder createBuilder() {
         return new GsonBuilder().disableHtmlEscaping()
@@ -73,7 +75,7 @@ public class BaseGson {
                 .registerTypeHierarchyAdapter(PositionSourceType.class, new RegistrySerializer<>(Registries.POSITION_SOURCE_TYPE))
                 .registerTypeHierarchyAdapter(RuleTestType.class, new RegistrySerializer<>(Registries.RULE_TEST))
                 .registerTypeHierarchyAdapter(RuleBlockEntityModifier.class, new RegistrySerializer<>(Registries.RULE_BLOCK_ENTITY_MODIFIER))
-                .registerTypeHierarchyAdapter(Text.class, new Text.Serializer(WRAPPER_LOOKUP))
+                .registerTypeHierarchyAdapter(Text.class, new CodecSerializer<>(TextCodecs.CODEC))
                 .registerTypeHierarchyAdapter(Style.class, new CodecSerializer<>(Style.Codecs.CODEC))
                 .registerTypeHierarchyAdapter(ItemStack.class, new CodecSerializer<>(ItemStack.CODEC))
                 .registerTypeHierarchyAdapter(BlockPos.class, new CodecSerializer<>(BlockPos.CODEC))
@@ -87,6 +89,22 @@ public class BaseGson {
                 .registerTypeHierarchyAdapter(Matrix4f.class, new CodecSerializer<>(Codecs.MATRIX4F))
                 .registerTypeHierarchyAdapter(BitSet.class, new CodecSerializer<>(Codecs.BIT_SET))
                 .registerTypeHierarchyAdapter(GameProfile.class, new CodecSerializer<>(Codecs.GAME_PROFILE_WITH_PROPERTIES));
+    }
+
+    public static void withRegistries(RegistryWrapper.WrapperLookup lookup) {
+        if (lookup != null) {
+            LOOKUP.set(lookup);
+        } else {
+            LOOKUP.remove();
+        }
+    }
+
+    public static RegistryWrapper.WrapperLookup getLookup() {
+        var lookup = LOOKUP.get();
+        if (lookup == null) {
+            return FALLBACK_LOOKUP;
+        }
+        return lookup;
     }
 
     private record RegistrySerializer<T>(Registry<T> registry) implements JsonSerializer<T>, JsonDeserializer<T> {
@@ -108,7 +126,7 @@ public class BaseGson {
         @Override
         public T deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             try {
-                return this.codec.decode(JsonOps.INSTANCE, json).getOrThrow().getFirst();
+                return this.codec.decode(getLookup().getOps(JsonOps.INSTANCE), json).getOrThrow().getFirst();
             } catch (Throwable e) {
                 return null;
             }
@@ -117,7 +135,7 @@ public class BaseGson {
         @Override
         public JsonElement serialize(T src, Type typeOfSrc, JsonSerializationContext context) {
             try {
-                return src != null ? this.codec.encodeStart(JsonOps.INSTANCE, src).getOrThrow() : JsonNull.INSTANCE;
+                return src != null ? this.codec.encodeStart(getLookup().getOps(JsonOps.INSTANCE), src).getOrThrow() : JsonNull.INSTANCE;
             } catch (Throwable e) {
                 return JsonNull.INSTANCE;
             }

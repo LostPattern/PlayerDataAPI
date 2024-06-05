@@ -29,7 +29,7 @@ public record NbtCodecDataStorage<T>(String path, Codec<T> codec) implements Pla
             Files.createDirectories(path);
 
             NbtCompound out;
-            var value = this.codec.encodeStart(NbtOps.INSTANCE, settings).result().get();
+            var value = this.codec.encodeStart(server.getRegistryManager().getOps(NbtOps.INSTANCE), settings).result().get();
             if (value instanceof NbtCompound compound) {
                 out = compound;
             } else {
@@ -61,7 +61,7 @@ public record NbtCodecDataStorage<T>(String path, Codec<T> codec) implements Pla
                 element = nbt;
             }
 
-            return this.codec.decode(NbtOps.INSTANCE, element).result().map(Pair::getFirst).orElse(null);
+            return this.codec.decode(server.getRegistryManager().getOps(NbtOps.INSTANCE), element).result().map(Pair::getFirst).orElse(null);
         } catch (Exception e) {
             PMI.LOGGER.error(String.format("Couldn't load player data of %s for path %s", player, this.path));
             e.printStackTrace();

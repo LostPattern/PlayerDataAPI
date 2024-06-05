@@ -43,7 +43,9 @@ public record JsonDataStorage<T>(String path, Class<T> clazz, Gson gson) impleme
 
         try {
             Files.createDirectories(path);
+            BaseGson.withRegistries(server.getRegistryManager());
             Files.writeString(path.resolve(this.path + ".json"), this.gson.toJson(settings), StandardCharsets.UTF_8);
+            BaseGson.withRegistries(null);
             return true;
         } catch (Exception e) {
             PMI.LOGGER.error(String.format("Couldn't save player data of %s for path %s", player, this.path));
@@ -61,7 +63,10 @@ public record JsonDataStorage<T>(String path, Class<T> clazz, Gson gson) impleme
             }
 
             String json = Files.readString(path, StandardCharsets.UTF_8);
-            return this.gson.fromJson(json, this.clazz);
+            BaseGson.withRegistries(server.getRegistryManager());
+            var ret = this.gson.fromJson(json, this.clazz);
+            BaseGson.withRegistries(null);
+            return ret;
         } catch (Exception e) {
             PMI.LOGGER.error(String.format("Couldn't load player data of %s for path %s", player, this.path));
             e.printStackTrace();
