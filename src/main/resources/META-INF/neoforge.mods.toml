@@ -1,0 +1,23 @@
+modLoader="javafml" #mandatory
+
+loaderVersion="[1,)" #mandatory
+
+license="LGPLv3"
+
+[[mods]] #mandatory
+modId="playerdataapi" #mandatory
+version="${version}" #mandatory
+displayName="Player Data API" #mandatory
+authors="Patbox, LostPattern" #optional
+
+# The description text for the mod (multi line!) (#mandatory)
+description='''Micro library for storing additional data for players, that isn\'t stored with main entity NBT'''
+
+# The [[mixins]] block allows you to declare your mixin config to FML so that it gets loaded.
+[[mixins]]
+config="playerdataapi.mixins.json"
+
+# The [[accessTransformers]] block allows you to declare where your AT file is.
+# If this block is omitted, a fallback attempt will be made to load an AT from META-INF/accesstransformer.cfg
+#[[accessTransformers]]
+#file="META-INF/accesstransformer.cfg"
